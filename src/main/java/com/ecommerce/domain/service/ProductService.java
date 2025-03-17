@@ -60,11 +60,11 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    public Product findById(String productId) throws Exception {
+    public Product findById(String productId) {
         logger.info("Finding product by ID: {}", productId);
         return productRepository.findById(productId).orElseThrow(() -> {
             logger.error("Product not found for ID: {}", productId);
-            return new Exception(String.format("There is no product registration with a code: %s", productId));
+            return new EntityNotFoundException(String.format("There is no product registration with a code: %s", productId));
         });
     }
 
@@ -94,7 +94,7 @@ public class ProductService {
         }
     }
 
-    public void deleteProduct(String productId) throws Exception {
+    public void deleteProduct(String productId) {
         findById(productId);
         productRepository.deleteById(productId);
     }

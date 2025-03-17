@@ -51,20 +51,11 @@ public class OrderService {
     public OrderResponse createOrder(User user, OrderRequest orderRequest) {
         logger.info("Starting order creation: {}", orderRequest);
         List<OrderItem> orderItems = orderRequest.getItems().stream().map(itemRequest -> {
-            Product product = null;
-            try {
-                product = productService.findById(itemRequest.getProductId());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            Product product = productService.findById(itemRequest.getProductId());
 
             if (product.getStockQuantity() < itemRequest.getQuantity()) {
                 logger.error("Insufficient stock for product: {}", product.getName());
-                try {
-                    throw new Exception(String.format("Error processing order. Insufficient stock for product: %s", product.getName()));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                throw new OutOfStockFoundException(String.format("Error processing order. Insufficient stock for product: %s", product.getName()));
             }
 
             return new OrderItem(null, null, product, itemRequest.getQuantity(), product.getPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity())));
@@ -84,17 +75,17 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse payOrder(String orderId) throws Exception {
+    public OrderResponse payOrder(String orderId) {
         logger.info("Starting pay order creation by Id: {}", orderId);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> {
                     logger.error("Order not found by ID: {}", orderId);
-                    return new Exception(String.format("There is no product registration with a code: %s", orderId));
+                    return new EntityNotFoundException(String.format("There is no product registration with a code: %s", orderId));
                 });
 
         if (!order.getStatus().equals(OrderStatus.PENDENTE)) {
             logger.error("Order status is different from pending for ID: {}", orderId);
-            throw new Exception(String.format("Payment cannot be processed. Order ID %s has already been paid or canceled.", orderId));
+            throw new OrderNotPendingException(String.format("Payment cannot be processed. Order ID %s has already been paid or canceled.", orderId));
         }
 
         for (OrderItem item : order.getItems()) {
@@ -103,7 +94,7 @@ public class OrderService {
                 order.setStatus(OrderStatus.CANCELADO);
                 transactionalHelper.saveOrderStatus(order);
                 logger.error("Order {} canceled due to insufficient stock.", orderId);
-                throw new Exception(String.format("Error processing order. Insufficient stock for product: %s", product.getName()));
+                throw new OutOfStockFoundException(String.format("Error processing order. Insufficient stock for product: %s", product.getName()));
             }
             product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
             productRepository.save(product);
