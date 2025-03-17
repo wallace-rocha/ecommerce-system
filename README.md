@@ -33,10 +33,9 @@ cd <path-do-seu-projeto>
 
 ### 2. Configurar o Banco de Dados (MySQL)
 
-1. Crie um banco de dados no MySQL:
-```
- CREATE DATABASE ecommerce-system;
-```
+1. Faça o dump do banco de dados com o arquivo disponibilizado no link abaixo:
+
+* https://drive.google.com/file/d/1nail1rSpuq6SJh64aIU7-ZBgLDKNKTc7/view?usp=sharing
 2. Compilar e Rodar a Aplicação
 ```
  mvn clean install
@@ -82,4 +81,3 @@ POST http://localhost:8080/api/v1/auth/login
 ###  Importante
 * Para acessar os endpoints protegidos, inclua o token JWT no cabeçalho Authorization.
 * O usuário admin já existe no dump do banco. A senha é: 123456.
-* Dump do banco de dados: https://drive.google.com/file/d/1nail1rSpuq6SJh64aIU7-ZBgLDKNKTc7/view?usp=sharing
